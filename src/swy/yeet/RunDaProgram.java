@@ -14,6 +14,7 @@ import javax.swing.JOptionPane;
 
 import drafterdat.settings.Settings;
 import swy.compile.DataRead;
+import swy.translate.Bibliophile;
 import swy.yoink.InnocentTreasures;
 import swy.yoink.Yasova;
 
@@ -44,6 +45,9 @@ public class RunDaProgram {
 		}
 		if (Settings.settingValue("RunDataRead", "0").equals("1")) {
 			DataRead dataRead = new DataRead(now);
+		}
+		if (Settings.settingValue("RunTranslator", "1").equals("1")) {
+			Bibliophile translator = new Bibliophile(now);
 		}
 		//System.out.println(System.currentTimeMillis() - time);
 		}

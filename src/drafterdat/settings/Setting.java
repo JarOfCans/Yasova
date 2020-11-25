@@ -60,6 +60,6 @@ public class Setting {
 	@Override
 	public String toString()
 	{
-		return name + "=" + value;
+		return String.format("%s=%s", name, value);
 	}
 }

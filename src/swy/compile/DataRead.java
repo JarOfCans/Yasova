@@ -54,7 +54,7 @@ public class DataRead {
 		outputCourseTimes();
 		outputRacerTimes();
 		//outputRacerCourseTimes(dataPointList);
-		compareTimes();
+		createNewTimes();
 		outputCSV();
 		outputLeastPolished();
 		
@@ -230,7 +230,7 @@ public class DataRead {
 	 * @param currentPrefix The prefix of the new TA leaderboard to check
 	 * @param dataPointList The current TA leaderboard dataPoint ArrayList
 	 */
-	public void compareTimes() {
+	public void createNewTimes() {
 		ArrayList<DataPoint> oldList = new ArrayList<DataPoint>(4200);
 		String inputPrefix = Settings.settingValue("Previous", prefix);
 		if (inputPrefix.equals(prefix)) {
@@ -260,6 +260,8 @@ public class DataRead {
 		try (BufferedWriter bw = new BufferedWriter(new FileWriter(prefixFolder()+prefix+"NewTimes.txt"))) {
 			int i = 0;
 			boolean topTenOnly = Settings.settingValue("NewTopTenOnly", "1").equals("1");
+			bw.write(String.format("%s -> %s", inputPrefix.substring(0, inputPrefix.length()-1), prefix.substring(0, prefix.length()-1)));
+			bw.newLine();
 			for (DataPoint dataPoint : dataPointList) {
 				//System.out.println(Yasova.COURSE[dataPoint.courseId]);
 				DataPoint oldPoint = oldList.get(i++);
