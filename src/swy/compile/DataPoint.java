@@ -7,12 +7,12 @@ import swy.core.ID;
 import swy.core.RaceTime;
 
 public class DataPoint {
-	String character1;
-	String character2;
-	int charId1;
-	int charId2;
-	String course;
-	int courseId;
+	private String character1;
+	private String character2;
+	private int charId1;
+	private int charId2;
+	private String course;
+	private int courseId;
 	ArrayList<RaceTime> data;
 	
 	public DataPoint(String init) {
@@ -20,7 +20,18 @@ public class DataPoint {
 		DataParse(init);
 	}
 	
+	public DataPoint(DataPoint input) {
+		data = new ArrayList<RaceTime>(10);
+		course = input.course;
+		character1 = input.character1;
+		character2 = input.character2;
+		charId1 = input.charId1;
+		charId2 = input.charId2;
+		courseId = input.courseId;
+	}
+	
 	private void DataParse(String input) {
+		//System.out.println(input.length()<50?input:input.substring(0, 49));
 		course = input.substring(0, input.indexOf(":"));
 		input = input.substring(input.indexOf(":") + 2);
 		character1 = input.substring(0, input.indexOf(" "));
@@ -37,6 +48,10 @@ public class DataPoint {
 	
 	public int getDataCount() {
 		return data.size();
+	}
+	
+	public ArrayList<RaceTime> getData() {
+		return data;
 	}
 	
 	public ArrayList<RaceTime> newData(DataPoint input) {
@@ -78,5 +93,36 @@ public class DataPoint {
 			output += data.get(i).percentile;
 		}
 		return output/(double)(Math.min(DataRead.polishMax, getDataCount()));
+	}
+	
+	@Override
+	public boolean equals(Object hoi) {
+		return (hoi instanceof DataPoint)?
+				(((DataPoint)hoi).charId1 == this.charId1&&((DataPoint)hoi).charId2 == this.charId2&&((DataPoint)hoi).courseId == this.courseId)
+				:false;
+	}
+	
+	public int getCharacterId1() {
+		return charId1;
+	}
+	
+	public int getCharacterId2() {
+		return charId2;
+	}
+	
+	public int getCourseId() {
+		return courseId;
+	}
+	
+	public String getCharacter1() {
+		return character1;
+	}
+
+	public String getCharacter2() {
+		return character2;
+	}
+
+	public String getCourse() {
+		return course;
 	}
 }

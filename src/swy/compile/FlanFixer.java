@@ -10,11 +10,11 @@ import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import drafterdat.settings.SettingsFolder;
-import swy.yeet.RunDaProgram;
+import swy.yeet.RunYasova;
 
 public class FlanFixer {
 	public static void main(String[] args) throws InterruptedException {
-		RunDaProgram.main(args);
+		RunYasova.main(args);
 		/*try {
 			System.out.println(prefixFolder() + "Flan-TA-Leaderboards.txt");
 			BufferedWriter bw = new BufferedWriter(new FileWriter(prefixFolder() + "2020-11-12-TA-Leaderboards.txt"));

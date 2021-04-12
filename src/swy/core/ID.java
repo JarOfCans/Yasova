@@ -47,6 +47,10 @@ public class ID {
 				return 18;
 			case "flan":
 				return 19;
+			case "alice":
+				return 20;
+			case "orin":
+				return 21;
 			case "any":
 				return -1;
 			default:

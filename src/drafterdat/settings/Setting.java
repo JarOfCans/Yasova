@@ -14,7 +14,7 @@ public class Setting {
 			throw new BetterNullPointerException("Can't give null value in Setting constructor name");
 		}
 		if (nameIn.equals("")) {
-			throw new IllegalArgumentException("Cant give blank value in Setting constructor name");
+			//throw new IllegalArgumentException("Face");//"Cant give blank value in Setting constructor name");
 		}
 		name = nameIn;
 		value = valueIn;

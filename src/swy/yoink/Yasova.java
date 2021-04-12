@@ -36,8 +36,8 @@ public class Yasova {
 	public static final String[] TIME2 = new String[] {"tu_time2_0", "tu_time2_1", "tu_time2_2", "tu_time2_3", "tu_time2_4", "tu_time2_5", "tu_time2_6", "tu_time2_7", "tu_time2_8", "tu_time2_9"};
 	public static final String[] TIME3 = new String[] {"tu_time3_0", "tu_time3_1", "tu_time3_2", "tu_time3_3", "tu_time3_4", "tu_time3_5", "tu_time3_6", "tu_time3_7", "tu_time3_8", "tu_time3_9"};
 	public static final String[] CHARAS = new String[] {"tu_chara_0", "tu_chara_1", "tu_chara_2", "tu_chara_3", "tu_chara_4", "tu_chara_5", "tu_chara_6", "tu_chara_7", "tu_chara_8", "tu_chara_9"};
-	public static final String[] QUICKCHAR = new String[] {"Any", "Reimu", "Marisa", "Sakuya", "Remilia", "Sanae", "Suwako", "Koishi", "Kokoro", "Youmu", "Udonge", "Nue", "Futo", "Cirno", "Seija", "Suika", "Kasen", "Tenshi", "Yukari", "Clown", "Flan"};
-	public static final String[] COURSE = new String[] {"MARI-CIRCUIT", "FOREST OF MAGIC", "HUMAN VILLAGE", "SCARLET DEVIL MANSION", "LOST BAMBOO THICKET", "YOUKAI MOUNTAIN", "SEIRENSEN", "HAKUGYOKURO", "EMBERS OF BLAZING HELL", "MISTY LAKE", "OLD CAPITAL", "MARI-CIRCUIT 2", "THE OUTSIDE WORLD", "VOILE LIBRARY", "SEA OF TRANQUILITY", "MOONLIT THICKET", "UNDERWORLD CITY DEPTHS", "REDEVELOPMENT AREA A"};
+	public static final String[] QUICKCHAR = new String[] {"Any", "Reimu", "Marisa", "Sakuya", "Remilia", "Sanae", "Suwako", "Koishi", "Kokoro", "Youmu", "Udonge", "Nue", "Futo", "Cirno", "Seija", "Suika", "Kasen", "Tenshi", "Yukari", "Clown", "Flan", "Alice", "Orin"};
+	public static final String[] COURSE = new String[] {"MARI-CIRCUIT", "FOREST OF MAGIC", "HUMAN VILLAGE", "SCARLET DEVIL MANSION", "LOST BAMBOO THICKET", "YOUKAI MOUNTAIN", "SEIRENSEN", "HAKUGYOKURO", "EMBERS OF BLAZING HELL", "MISTY LAKE", "OLD CAPITAL", "MARI-CIRCUIT 2", "THE OUTSIDE WORLD", "VOILE LIBRARY", "SEA OF TRANQUILITY", "MOONLIT THICKET", "UNDERWORLD CITY DEPTHS", "REDEVELOPMENT AREA A", "REDEVELOPMENT AREA B", "HEAVEN"};
 	private String prefix;
 
 	public Yasova(String prefix) throws InterruptedException {
@@ -61,10 +61,10 @@ public class Yasova {
 	
 	public void start() throws InterruptedException {
 		try {
+			driver.get("https://ranking.skydrift.info/en/index");
 			try (BufferedWriter bw = new BufferedWriter(new FileWriter(prefixFolder() + prefix+"TA-Leaderboards.txt", appendToTA))) {
 			long time = System.currentTimeMillis();
 			String check, name1, name2, name3;
-			driver.get("https://ranking.skydrift.info/en/index");
 			Thread.sleep(WEBSITE_BREAK*10);
 			for (int i = initCourse; i < COURSE.length; i++) {
 				initCourse = 0;

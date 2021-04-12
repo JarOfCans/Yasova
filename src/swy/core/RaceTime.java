@@ -12,18 +12,22 @@ public class RaceTime implements Comparable<RaceTime> {
 	public String character2;
 	public int course;
 	public int globalPosition;
+	public int globalUniquePosition;
 	public double percentile;
+	public boolean perfectVision;
+	public boolean topTime;
 	
 	public RaceTime(String input, int inputCourse) {
 		dataParse(input);
 		course = inputCourse;
+		topTime = false;
 	}
 	
 	private void dataParse(String input) {
-		//System.out.println(input);
+		//System.out.println(input.length()<50?input:input.substring(0, 49));
 		placement = Integer.parseInt(input.substring(4, input.indexOf(".")));
 		input = input.substring(input.indexOf(".") + 2);
-		racerName = input.substring(0, input.indexOf(" (0") - 1);
+		racerName = input.substring(0, input.indexOf(" (0"));
 		input = input.substring(input.indexOf(" (0") + 2);
 		minutes = Integer.parseInt(input.substring(0, 2));
 		input = input.substring(3);
@@ -46,8 +50,11 @@ public class RaceTime implements Comparable<RaceTime> {
 	}
 	
 	public String toString() {
-		return (globalPosition != 0)? String.format("%5s. %-7s + %-7s #%02d (%02d:%02d:%03d) by %s", Integer.toString(globalPosition), capFirstLowerRest(character1), capFirstLowerRest(character2), placement, minutes, seconds, miliseconds, racerName):
+		return (globalPosition != 0)? String.format("%5s%s %-7s + %-7s #%02d (%02d:%02d:%03d) by %s", Integer.toString(globalPosition),(perfectVision)?".":"?", capFirstLowerRest(character1), capFirstLowerRest(character2), placement, minutes, seconds, miliseconds, racerName):
 				positionlesstoString();
+	}
+	public String toCompressedString() {
+		return String.format("%4s%s %-7s + %-7s (%02d:%02d:%03d) by %s", Integer.toString(globalUniquePosition),(perfectVision)?".":"?", capFirstLowerRest(character1), capFirstLowerRest(character2), minutes, seconds, miliseconds, racerName);
 	}
 	
 	public String positionlesstoString() {
@@ -57,9 +64,16 @@ public class RaceTime implements Comparable<RaceTime> {
 	public String racerString() {
 		return String.format(" %.2f%s %-7s + %-7s #%02d (%02d:%02d:%03d) on %s", percentile*100, "%", capFirstLowerRest(character1), capFirstLowerRest(character2), placement, minutes, seconds, miliseconds, Yasova.COURSE[course]);
 	}
+
+	public String compactString() {
+		return String.format("%4s%s %-7s + %-7s (%02d:%02d:%03d) on %s", Integer.toString(globalUniquePosition),(perfectVision)?".":"?", capFirstLowerRest(character1), capFirstLowerRest(character2), minutes, seconds, miliseconds, Yasova.COURSE[course]);
+	}
+	public String racerAnyString() {
+		return String.format(" %-7s + %-7s #%02d (%02d:%02d:%03d) on %s", capFirstLowerRest(character1), capFirstLowerRest(character2), placement, minutes, seconds, miliseconds, Yasova.COURSE[course]);
+	}
 	
 	public String csvString() {
-		return String.format("\"%s\",%s,%s,%s,%02d:%02d.%03d",racerName, Yasova.COURSE[course], capFirstLowerRest(character1), capFirstLowerRest(character2), minutes, seconds, miliseconds);
+		return String.format("\"%s\",%s,%s,%s,%d",racerName, Yasova.COURSE[course], capFirstLowerRest(character1), capFirstLowerRest(character2), miliTime());
 	}
 	
 	public boolean equals(Object input) {
@@ -77,4 +91,5 @@ public class RaceTime implements Comparable<RaceTime> {
 	public static String capFirstLowerRest(String input) {
 		return input.substring(0, 1) + input.substring(1).toLowerCase();
 	}
+
 }

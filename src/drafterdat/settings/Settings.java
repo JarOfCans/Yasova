@@ -3,9 +3,16 @@ package drafterdat.settings;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 /**
  * class to hold settings for the program. It is not intended to be constructed.
@@ -52,7 +59,7 @@ public class Settings {
 			if (!f1.exists())
 			{
 				try {
-					System.out.println(f1.getPath());
+					System.out.println("Doesn't exist: " + f1.getPath());
 					f1.createNewFile();
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -73,14 +80,10 @@ public class Settings {
 	 */
 	private static void createSetting(String nameIn, String valueIn)
 	{
-		try {
-			settings.add(new Setting(nameIn, valueIn));
-		}
-		catch (NullPointerException | IllegalArgumentException e)
-		{
-			System.out.println(e.getLocalizedMessage());
-		}
-		updateSettingFile();
+		Setting newSetting = new Setting(nameIn, valueIn);
+		settings.add(newSetting);
+		//updateSettingFile();
+		//System.out.printf("Setting Created: %s at value %s%s", nameIn, valueIn, System.lineSeparator());
 	}
 	/**
 	 * Gets the setting name and value from an appropriate Setting string.
@@ -125,7 +128,7 @@ public class Settings {
 	public static void getSettingFile()
 	{
 		String next;
-		try (BufferedReader br = new BufferedReader(new FileReader(SETTINGS_FILE))){
+		try (BufferedReader br = Files.newBufferedReader(Paths.get(SETTINGS_FILE), StandardCharsets.UTF_8)){
 			while ((next = br.readLine()) != null) {
 				String newName = getNameHelper(next);
 				String newValue = getValueHelper(next);
@@ -139,8 +142,9 @@ public class Settings {
 	}
 	private static void updateSettingFile()
 	{
-		//System.out.println(settings);
-		try (BufferedWriter bw = new BufferedWriter(new FileWriter(SETTINGS_FILE))){
+		//System.out.println("Updating Settings File.");
+		try (OutputStreamWriter bw =
+	             new OutputStreamWriter(new FileOutputStream(SETTINGS_FILE), StandardCharsets.UTF_8)){
 			for (Setting hoi: settings)
 			{
 				/*if (hoi == null)
