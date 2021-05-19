@@ -5,13 +5,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import drafterdat.settings.Settings;
+import swy.combos.Combo;
+import swy.combos.ComboSortComparator;
 import swy.compile.DataPoint;
 import swy.compile.NameCourseSortComparator;
 import swy.compile.NameSortComparable;
 import swy.compile.PairData;
 import swy.core.RaceTime;
 import swy.yoink.Yasova;
-import org.apache.commons.math3.distribution.*;
 
 public class RacerBatch {
 	//char startChar;
@@ -76,6 +78,36 @@ public class RacerBatch {
 			}
 		}
 	}*/
+	public void generateCompactCombos(BufferedWriter bw) throws IOException {
+		ArrayList<Combo> combos = new ArrayList<Combo>();
+		boolean doAny = Settings.settingValue("DoCompactComboAnys", "0").equals("1");
+		for (DataPoint dp: tables) {
+			if (dp.getDataCount() > 0 && (doAny || (dp.getCharacterId1() != -1 && dp.getCharacterId2() != -1))) {
+				int id = combosIndex(combos, dp);
+				if (id != -1) {
+					//System.out.println("Added");
+					combos.get(id).add(dp);
+				}
+				else {
+					combos.add(new Combo(dp));
+				}
+			}
+		}
+		Collections.sort(combos, new ComboSortComparator());
+		int i = 1;
+		for (Combo combo: combos) {
+			combo.write(bw, i++);
+		}
+	}
+	
+	public static int combosIndex(ArrayList<Combo> hoi, DataPoint dp) {
+		for (int i = 0; i < hoi.size(); i++) {
+			if (hoi.get(i).equals(dp)) {
+				return i;
+			}
+		}
+		return -1;
+	}
 	
 	public void addTime(RaceTime rt) {
 		int index = indexOf(rt.racerName);
@@ -179,7 +211,7 @@ public class RacerBatch {
 			name.bake();
 		}
 		Collections.sort(racers);
-		NormalDistribution dist = new NormalDistribution();
+		//NormalDistribution dist = new NormalDistribution();
 		for (ArrayList<RaceTime> hoi: courseTimes) {
 			//System.out.println(hoi.size());
 			int globalPosition = 1;

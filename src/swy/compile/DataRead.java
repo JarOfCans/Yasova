@@ -68,6 +68,7 @@ public class DataRead {
 		outputRacerTimes();
 		outputCompactRacerTimes();
 		outputCompactCourseTimes();
+		outputCompactComboTimes();
 		//outputRacerCourseTimes(dataPointList);
 		createNewTimes();
 		outputCSV();
@@ -146,48 +147,8 @@ public class DataRead {
 	}
 	
 	public void outputRacerTimes() {
-		//ArrayList<ArrayList<RaceTime>> raceTimeArray = new ArrayList<ArrayList<RaceTime>>();
-		//ArrayList<RaceTime> racerTimeArray = new ArrayList<RaceTime>();
-		
-		/*for (int i = 0; i < Yasova.COURSE.length; i++) {
-			raceTimeArray.add(new ArrayList<RaceTime>());
-		}
-		
-		for (DataPoint dataPoint : dataPointList) {
-			if (dataPoint.charId1 != -1 && dataPoint.charId2 != -1) {
-				for (RaceTime raceTime: dataPoint.data) {
-					raceTimeArray.get(dataPoint.courseId).add(raceTime);
-				}
-			}
-		}
-		for (ArrayList<RaceTime> timeArray: raceTimeArray) {
-			Collections.sort(timeArray);
-			int n = 0;
-			for (RaceTime racetime : timeArray) {
-				racetime.globalPosition = n++;
-				//racerTimeArray.add(racetime);
-				racerTimes.addTime(racetime);
-			}
-		}*/
-		/*for (RaceTime racetime : racerTimes.getAll()) {
-			racetime.percentile = 1 - ((double) racetime.globalPosition)/((double)raceTimeArray.get(racetime.course).size()-1);
-		}*/
-		//TODO RacerManager
-		//Collections.sort(racerTimeArray, new NameSortComparable());
-		
 		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder()+destinationPrefix+"RacerTimes.txt"))) {
 			racerTimes.generateOutput(bw);
-			/*String previousRacer = null;
-			for (RaceTime racetime : racerTimeArray) {
-				if (!racetime.racerName.equals(previousRacer)) {
-					previousRacer = racetime.racerName;
-					bw.write(previousRacer);
-					bw.newLine();
-				}
-				bw.write(racetime.racerString());
-				bw.newLine();
-			}*/
-			
 			bw.close();
 			
 		} catch (IOException e) {
@@ -220,6 +181,16 @@ public class DataRead {
 	public void outputCompactRacerTimes() {
 		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder()+destinationPrefix+"CompactRacerTimes.txt"))) {
 			racerTimes.generateCompactOutput(bw);
+			
+			bw.close();
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	public void outputCompactComboTimes() {
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder()+destinationPrefix+"CompactComboTimes.txt"))) {
+			racerTimes.generateCompactCombos(bw);
 			
 			bw.close();
 			
@@ -447,9 +418,11 @@ public class DataRead {
 			bw.write("Racer,Course,Character 1,Character 2,Time");
 			bw.newLine();
 			for (DataPoint dataPoint: racerTimes.getDataPoints()) {
+				if (dataPoint.getCharacterId1() != -1 && dataPoint.getCharacterId2() != -1) {
 				for (RaceTime raceTime: dataPoint.data) {
 					bw.write(raceTime.csvString());
 					bw.newLine();
+				}
 				}
 			}
 		} catch (IOException e) {

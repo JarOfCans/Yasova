@@ -21,7 +21,7 @@ public class Top100WebsiteData {
 			output.add(data.get(i).replaceAll(characterFilter, "").replace("&nbsp;", "").replaceAll("\n+","").replaceAll("\r+",""));
 		}
 		if (output.get(1).length() < 1) {
-			output.set(1, "[YasovaInvalidName]");
+			output.set(1, "[UnreadableName]");
 		}
 		return output;
 	}

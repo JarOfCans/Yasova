@@ -22,7 +22,7 @@ public class RunYasova {
 		long time = System.currentTimeMillis();
 		Settings.pullSettings();
 		if (true) {
-			System.out.println(Charset.defaultCharset());
+			//System.out.println(Charset.defaultCharset());
 		System.setProperty("webdriver.gecko.driver", System.getProperty("user.home")+"\\eclipse-workspace\\Yasova\\geckodriver-v0.27.0-win32\\geckodriver.exe");
 		TimeZone tz = TimeZone.getTimeZone("JST");
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd-");
