@@ -5,18 +5,23 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import drafterdat.settings.Settings;
+import swy.combos.Combo;
+import swy.combos.ComboSortComparator;
 import swy.compile.DataPoint;
 import swy.compile.NameCourseSortComparator;
 import swy.compile.NameSortComparable;
 import swy.compile.PairData;
 import swy.core.RaceTime;
 import swy.yoink.Yasova;
-import org.apache.commons.math3.distribution.*;
 
 public class RacerBatch {
 	//char startChar;
 	private ArrayList<RacerName> racers;
 	private ArrayList<DataPoint> tables;
+	private ArrayList<Combo> anyCombos;
+	private ArrayList<Combo> doubleCombos;
+	private ArrayList<Combo> combos;
 	
 	private ArrayList<ArrayList<RaceTime>> courseTimes;
 	
@@ -42,7 +47,7 @@ public class RacerBatch {
 	public void generateOutput(BufferedWriter bw) throws IOException {
 		//String output = "";
 		//System.out.println("Moo");
-		int i = 1;
+		//int i = 1;
 		ArrayList<RaceTime> racerTimeArray = getAll();
 		Collections.sort(racerTimeArray, new NameSortComparable());
 		String previousRacer ="";
@@ -76,6 +81,56 @@ public class RacerBatch {
 			}
 		}
 	}*/
+	public void generateCombosBest(BufferedWriter bw) throws IOException {
+		Collections.sort(combos, new ComboSortComparator());
+		int i = 1;
+		for (Combo combo: combos) {
+			combo.write(bw, i++);
+		}
+	}
+	
+	public void generateCombosCompact(BufferedWriter bw) throws IOException {
+		if (anyCombos.size() > 0) {
+			bw.write("Character + Any sorted:");
+			bw.newLine();
+			Collections.sort(anyCombos,new ComboSortComparator());
+			int i = 1;
+			for (Combo combo: anyCombos) {
+				combo.compactWrite(bw, i++);
+			}
+			bw.write("====================");
+			bw.newLine();
+		}
+		if (doubleCombos.size() > 0) {
+			bw.write("Character + Character sorted:");
+			bw.newLine();
+			Collections.sort(doubleCombos,new ComboSortComparator());
+			int i = 1;
+			for (Combo combo: doubleCombos) {
+				combo.compactWrite(bw, i++);
+			}
+			bw.write("====================");
+			bw.newLine();
+		}
+		bw.write("All combos sorted:");
+		bw.newLine();
+		Collections.sort(combos,new ComboSortComparator());
+		int i = 1;
+		for (Combo combo: combos) {
+			combo.compactWrite(bw, i++);
+		}
+	}
+	
+	@SuppressWarnings("unlikely-arg-type")
+	public static int combosIndex(ArrayList<Combo> hoi, DataPoint dp) {
+		for (int i = 0; i < hoi.size(); i++) {
+			if (hoi.get(i).equals(dp)) {
+				return i;
+			}
+		}
+		return -1;
+	}
+	
 	
 	public void addTime(RaceTime rt) {
 		int index = indexOf(rt.racerName);
@@ -179,25 +234,13 @@ public class RacerBatch {
 			name.bake();
 		}
 		Collections.sort(racers);
-		NormalDistribution dist = new NormalDistribution();
+		//NormalDistribution dist = new NormalDistribution();
 		for (ArrayList<RaceTime> hoi: courseTimes) {
 			//System.out.println(hoi.size());
 			int globalPosition = 1;
 			int topPosition = 1;
 			Collections.sort(hoi);
 			
-			//Calculate standard deviation
-			/*double mean = 0;
-			for (RaceTime racetime : hoi) {
-				mean += racetime.miliTime();
-			}
-			mean /= hoi.size();
-			double sd = 0;
-			for (RaceTime racetime : hoi) {
-				sd += Math.pow(racetime.miliTime() - mean, 2);
-			}
-			sd = Math.sqrt(sd/hoi.size() - 1);
-			System.out.printf("%s: mean-%s sd-%s%s",hoi.get(0).course,mean,sd,System.lineSeparator());*/
 			int top = hoi.get(0).miliTime();
 			boolean known = true;
 			for (RaceTime racetime : hoi) {
@@ -212,6 +255,46 @@ public class RacerBatch {
 				if (racetime.placement == 100) {
 					known = false;
 				}
+			}
+		}
+
+		combos = new ArrayList<Combo>();
+		anyCombos = new ArrayList<Combo>();
+		doubleCombos = new ArrayList<Combo>();
+		boolean doAny = Settings.settingValue("DoCompactComboAnys", "1").equals("1");
+		boolean doDouble = Settings.settingValue("DoCompactComboDoubles", "1").equals("1");
+		for (DataPoint dp: tables) {
+			if (dp.getDataCount() > 0 && dp.getCharacterId1() != -1) {
+				if (dp.getCharacterId2() == -1) {
+					if (doAny) {
+						int id = combosIndex(anyCombos, dp);
+						if (id != -1) {
+							anyCombos.get(id).add(dp);
+						} else {
+							anyCombos.add(new Combo(dp));
+						}
+					}
+				} else {
+					int id = combosIndex(combos, dp);
+					if (id != -1) {
+						combos.get(id).add(dp);
+					} else {
+						combos.add(new Combo(dp));
+					}
+					if (dp.getCharacterId2() == dp.getCharacterId1() && doDouble) {
+						id = combosIndex(doubleCombos, dp);
+						if (id != -1) {
+							doubleCombos.get(id).add(dp);
+						} else {
+							doubleCombos.add(new Combo(dp));
+						}
+					}
+				}
+			}
+		}
+		for (Combo hoi: anyCombos) {
+			for (RaceTime rt: hoi.times) {
+				rt.percentile = ((double)courseTimes.get(rt.course).get(0).miliTime())/rt.miliTime();
 			}
 		}
 	}

@@ -22,6 +22,7 @@ import org.openqa.selenium.support.ui.Select;
 import drafterdat.settings.Settings;
 import drafterdat.settings.SettingsFolder;
 import swy.core.RaceTime;
+import swy.testing.TimeTeller;
 import swy.websitereader.Top100Reader;
 import swy.websitereader.Top100WebsiteData;
 
@@ -36,18 +37,16 @@ public class InnocentTreasures {
 	private int initChar1 = 0;
 	private int initChar2 = 0;
 	private String prefix;
+	public static TimeTeller check;
 
 	public InnocentTreasures(String prefix) throws InterruptedException {
 		//driver = new FirefoxDriver();
 		this.prefix = prefix;
-		//WAIT_TIME = Math.max(50, Integer.parseInt(Settings.settingValue("WaitTime", "80")));
+		check = new TimeTeller();
 		WEBSITE_BREAK = Integer.parseInt(Settings.settingValue("InnocentTreasuresWebsiteBreak", "250"));
 		courseTotal = Integer.parseInt(Settings.settingValue("CourseTotal", "20"));
 		characterTotal = Integer.parseInt(Settings.settingValue("CharacterTotal", "22")) + 1;
-		//FREEZE_CHECKS = Math.max(50, Integer.parseInt(Settings.settingValue("FreezeChecks", "100")));
-		//slowDownIncrease = Integer.parseInt(Settings.settingValue("SlowDownIncrease", "20"));
-		//slowDownMaximum = Integer.parseInt(Settings.settingValue("SlowDownMaxiumum", "2000"));
-		//slowDownDecrease = Integer.parseInt(Settings.settingValue("SlowDownDecrease", "20"));
+		
 		if (Settings.settingValue("DoCourseInit", "0").equals("1")) {
 			appendToTA = true;
 			initCourse = Integer.parseInt(Settings.settingValue("CourseInit", "0"));
@@ -60,8 +59,12 @@ public class InnocentTreasures {
 	
 	public void start() throws InterruptedException {
 		try {
+			//final int CONNECT = check.newSlot("URL create");
+			final int BREAK = check.newSlot("Manual Website Break");
+			final int READ = check.newSlot("Read website total");
+			final int WRITE = check.newSlot("Write to output");
 			//try (BufferedWriter bw = new BufferedWriter(new FileWriter(prefixFolder() + prefix+"TA-Leaderboards.txt", appendToTA))) {
-			try (BufferedWriter bw = Files.newBufferedWriter(Paths.get(prefixFolder() + prefix+"TA-Leaderboards.txt"), StandardCharsets.UTF_8, StandardOpenOption.WRITE, StandardOpenOption.CREATE,(appendToTA)?StandardOpenOption.APPEND:StandardOpenOption.TRUNCATE_EXISTING)) {
+			try (BufferedWriter bw = Files.newBufferedWriter(Paths.get(prefixFolder() + "TA-Leaderboards.txt"), StandardCharsets.UTF_8, StandardOpenOption.WRITE, StandardOpenOption.CREATE,(appendToTA)?StandardOpenOption.APPEND:StandardOpenOption.TRUNCATE_EXISTING)) {
 			//long time = System.currentTimeMillis();
 				int i = initCourse;
 				int c1 = initChar1;
@@ -75,13 +78,20 @@ public class InnocentTreasures {
 						System.out.println(String.format("%d/%d: %d/%d + %d/%d",i,courseTotal,c1,characterTotal,c2,characterTotal));
 						initChar2 = 0;
 						//driver.get(String.format("https://ranking.skydrift.info/en/records?course_id=%d&character1=%d&character2=%d", i, c1 - 1, c2 - 1));
+						/*check.start(CONNECT);
 						connection = new URL(String.format("https://ranking.skydrift.info/en/records?course_id=%d&character1=%d&character2=%d", i, c1 - 1, c2 - 1)).openConnection();
+						check.stop(CONNECT);*/
+						check.start(BREAK);
 						Thread.sleep(WEBSITE_BREAK);
+						check.stop(BREAK);
 						// TODO Add in try/catch to catch org.openqu.selenium.WebDriverException
 						
 						
 						//List<WebElement> pTags = driver.findElements(By.tagName("p"));
+						check.start(READ);
 						Top100WebsiteData values = Top100Reader.getValues(i, c1-1, c2-1);
+						check.stop(READ);
+						check.start(WRITE);
 						if (c1 == 0) {
 							bw.write(String.format("%s: %s + %s",values.getCourse(),capFirstLowerRest(values.getCharacter2()),capFirstLowerRest(values.getCharacter1())));
 						}
@@ -105,22 +115,26 @@ public class InnocentTreasures {
 								bw.flush();
 							}
 						}
+						check.stop(WRITE);
 					}
 					//bw.flush();
 				}
-			}} catch (WebDriverException wde) {
+				check.print();
+			}} catch (IndexOutOfBoundsException wde) {
 				wde.printStackTrace();
 				Settings.setSettingValue("CourseInit", i);
 				Settings.setSettingValue("Char1Init", c1);
 				Settings.setSettingValue("Char2Init", c2);
 				Settings.setSettingValue("DoCourseInit", "1");
+				check.print();
 				System.out.println("Pick up where left off set up, enable in Settings");
 			}
 			bw.close();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			Thread.sleep(5000);
+			check.print();
+			//Thread.sleep(5000);
 			
 		} finally {
 			//driver.quit();
@@ -142,7 +156,7 @@ public class InnocentTreasures {
 	}*/
 	
 	private String prefixFolder() {
-		String output = SettingsFolder.programDataFolder() + prefix.substring(0, prefix.length()-1) + "\\";
+		String output = SettingsFolder.programDataFolder() + prefix + "\\";
 		SettingsFolder.prepFolder(output);
 		return output;
 	}

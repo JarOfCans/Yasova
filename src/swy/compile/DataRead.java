@@ -2,7 +2,6 @@ package swy.compile;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -10,12 +9,14 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import drafterdat.settings.Settings;
 import drafterdat.settings.SettingsFolder;
 import swy.compile.racers.RacerBatch;
 import swy.core.RaceTime;
-import swy.yeet.RunYasova;
+import swy.yoink.RunYasova;
 import swy.yoink.Yasova;
 
 public class DataRead {
@@ -23,13 +24,11 @@ public class DataRead {
 	private String destinationPrefix;
 	public static int polishMax;
 	RacerBatch racerTimes;
-	//ArrayList<DataPoint> dataPointList;
 	public static void main(String[] args) throws InterruptedException {
 		RunYasova.main(new String[0]);
 	}
 	
 	public DataRead(String destination) {
-		//long time = System.currentTimeMillis();
 		racerTimes = new RacerBatch();
 		destinationPrefix = destination;
 		targetPrefix = Settings.settingValue("OverrideReadLocation", "");
@@ -37,10 +36,7 @@ public class DataRead {
 			targetPrefix = destinationPrefix;
 		}
 		polishMax = Integer.parseInt(Settings.settingValue("AveragePercentileCount", "10"));
-		//System.out.printf("%s%s", targetFolder()+targetPrefix+"TA-Leaderboards.txt", System.lineSeparator());
-		//dataPointList = new ArrayList<DataPoint>(4200);
-		//try (BufferedReader br = new BufferedReader(new FileReader(targetFolder()+targetPrefix+"TA-Leaderboards.txt"))) {
-		try (BufferedReader br = Files.newBufferedReader(Paths.get(targetFolder()+targetPrefix+"TA-Leaderboards.txt"), StandardCharsets.UTF_8)) {
+		try (BufferedReader br = Files.newBufferedReader(Paths.get(targetFolder()+"TA-Leaderboards.txt"), StandardCharsets.UTF_8)) {
 			String nextLine;
 			DataPoint lastDataPoint = null;
 			while ((nextLine = br.readLine()) != null) {
@@ -51,7 +47,6 @@ public class DataRead {
 					else {
 						lastDataPoint = new DataPoint(nextLine);
 						racerTimes.addDataPoint(lastDataPoint);
-						//dataPointList.add(lastDataPoint);
 					}
 				}
 			}
@@ -64,17 +59,22 @@ public class DataRead {
 		}
 		racerTimes.bake();
 		outputDataPair();
-		outputCourseTimes();
+		//outputCourseTimes();
+		outputCourseTimesFiles();
 		outputRacerTimes();
 		outputCompactRacerTimes();
 		outputCompactCourseTimes();
+		outputCompactComboTimes();
+		outputTopCombos();
 		//outputRacerCourseTimes(dataPointList);
 		createNewTimes();
 		outputCSV();
-		outputLeastPolished();
+		//outputLeastPolished();
 		racerAnyTimes();
 		outputSuzunaanFile();
+		outputReadMe();
 		
+		//outputBabyYasova();
 		System.out.println("DataRead done");
 		//System.out.println(System.currentTimeMillis() - time);
 	}
@@ -83,48 +83,20 @@ public class DataRead {
 	public void outputDataPair() {
 		//int charCount = Yasova.QUICKCHAR.length - 1;
 		ArrayList<PairData> dataPairList = racerTimes.getPairData();
-		/*int[][] characterCounts = new int[charCount][charCount];
-		for (DataPoint hoi: racerTimes.getDataPoints()) {
-			int charId1 = hoi.getCharacterId1();
-			int charId2 = hoi.getCharacterId2();
-			if (charId1 >= 0 && charId2 >= 0) {
-				characterCounts[charId1][charId2] += hoi.getDataCount();
-			}
-		}
-		for (int i = 0; i < characterCounts.length; i++) {
-			for (int m = i; m < characterCounts.length; m++) {
-				dataPairList.add(new PairData(i, m, characterCounts[i][m]));
-			}
-		}*/
 		Collections.sort(dataPairList, new DataPairComparator());
-		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder()+destinationPrefix+"CharacterComboCount.txt"))) {
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder()+"ComboCount.txt"))) {
 			for (PairData pair: dataPairList) {
 				bw.write(pair.toString());
 				bw.newLine();
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
 	public void outputCourseTimes() {
-		//ArrayList<ArrayList<RaceTime>> raceTimeArray = new ArrayList<ArrayList<RaceTime>>();
 		
-		/*for (int i = 0; i < Yasova.COURSE.length; i++) {
-			raceTimeArray.add(new ArrayList<RaceTime>());
-		}
-		
-		for (DataPoint dataPoint : dataPointList) {
-			if (dataPoint.charId1 != -1 && dataPoint.charId2 != -1) {
-				for (RaceTime raceTime: dataPoint.data) {
-					raceTimeArray.get(dataPoint.courseId).add(raceTime);
-				}
-			}
-		}*/
-		//Collections.sort(raceTimeArray.get(0));
-		
-		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder()+destinationPrefix+"CourseTimes.txt"))) {
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder()+"CourseTimes.txt"))) {
 			int i = 0;
 			for (ArrayList<RaceTime> timeArray: racerTimes.getAllCourses()) {
 				//Collections.sort(timeArray);
@@ -145,49 +117,89 @@ public class DataRead {
 		}
 	}
 	
-	public void outputRacerTimes() {
-		//ArrayList<ArrayList<RaceTime>> raceTimeArray = new ArrayList<ArrayList<RaceTime>>();
-		//ArrayList<RaceTime> racerTimeArray = new ArrayList<RaceTime>();
-		
-		/*for (int i = 0; i < Yasova.COURSE.length; i++) {
-			raceTimeArray.add(new ArrayList<RaceTime>());
-		}
-		
-		for (DataPoint dataPoint : dataPointList) {
-			if (dataPoint.charId1 != -1 && dataPoint.charId2 != -1) {
-				for (RaceTime raceTime: dataPoint.data) {
-					raceTimeArray.get(dataPoint.courseId).add(raceTime);
+	public void outputCourseTimesFiles() {
+
+		int i = 0;
+		SettingsFolder.prepFolder(destinationFolder() + "CourseTimes\\");
+		for (ArrayList<RaceTime> timeArray: racerTimes.getAllCourses()) {
+			System.out.println(Yasova.COURSE_PROPER[i]);
+			try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder() + "CourseTimes\\"+Yasova.COURSE_PROPER[i]+".txt"))) {
+			//Collections.sort(timeArray);
+				//bw.write("Ur Mom Gae");
+				bw.write(Yasova.COURSE[i]);
+				bw.newLine();
+				bw.newLine();
+				bw.write("Top 10 —");
+				bw.newLine();
+				final int courseID = i;
+				List<RaceTime> points = racerTimes.getDataPoints().stream().filter(t -> t.getCourseId() == courseID && t.getCharacterId1() == -1 && t.getCharacterId2() == -1).collect(Collectors.toList()).get(0).data;
+				boolean doMax = false;
+				for (int n = 0; n < 10 && points.size() > n; n++) {
+					//racetime.globalPosition = n++;
+					//bw.write(String.format("%4s.",Integer.toString(n+1)));
+					writeLine(bw, points.get(n).toCourseFileString());
+					if (n == 9) {
+						doMax = true;
+					}
 				}
-			}
-		}
-		for (ArrayList<RaceTime> timeArray: raceTimeArray) {
-			Collections.sort(timeArray);
-			int n = 0;
-			for (RaceTime racetime : timeArray) {
-				racetime.globalPosition = n++;
-				//racerTimeArray.add(racetime);
-				racerTimes.addTime(racetime);
-			}
-		}*/
-		/*for (RaceTime racetime : racerTimes.getAll()) {
-			racetime.percentile = 1 - ((double) racetime.globalPosition)/((double)raceTimeArray.get(racetime.course).size()-1);
-		}*/
-		//TODO RacerManager
-		//Collections.sort(racerTimeArray, new NameSortComparable());
-		
-		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder()+destinationPrefix+"RacerTimes.txt"))) {
-			racerTimes.generateOutput(bw);
-			/*String previousRacer = null;
-			for (RaceTime racetime : racerTimeArray) {
-				if (!racetime.racerName.equals(previousRacer)) {
-					previousRacer = racetime.racerName;
-					bw.write(previousRacer);
+				if (doMax) {
+					writeLine(bw, " ...");
+					//bw.newLine();
+					writeLine(bw, points.get(points.size()-1).toCourseFileString());
+				}
+				bw.newLine();
+				bw.newLine();
+				writeLine(bw, "Characters —");
+
+				int bestMilitime = points.get(0).miliTime();
+				for (int c = 1; c < Yasova.QUICKCHAR.length; c++) {
+					final int j = c;
+					List<DataPoint> dps = racerTimes.getDataPoints().stream().filter(t -> t.getCourseId() == courseID && (t.getCharacterId1() == j-1 || t.getCharacterId2() == j-1)).collect(Collectors.toList());
+					writeLine(bw, "-"+Yasova.QUICKCHAR[j]+":");
+					int bestCharMilitime=0;
+					for (DataPoint hoidp: dps) {
+						if (hoidp.getCharacter2().equals("Any")) {
+							bestCharMilitime = hoidp.data.get(0).miliTime();
+						} else {
+							bw.write("   +");
+							bw.write(String.format("%-8s", ((hoidp.getCharacterId1() == j-1)?hoidp.getCharacter2():hoidp.getCharacter1())+":"));
+							try {
+								writeLine(bw, hoidp.data.get(0).toSmolCourseFileString());
+								writeLine(bw, "     WR +"
+										+RaceTime.miliTimeString(hoidp.data.get(0).miliTime()-bestMilitime) + ", CR +"
+										+RaceTime.miliTimeString(hoidp.data.get(0).miliTime()-bestCharMilitime));
+								//writeLine(bw, "      vs WR: +"+RaceTime.miliTimeString(hoidp.data.get(0).miliTime()-bestMilitime));
+								//writeLine(bw, "      vs CR: +"+RaceTime.miliTimeString(hoidp.data.get(0).miliTime()-bestCharMilitime));
+							} catch (IndexOutOfBoundsException e) {
+								writeLine(bw, "No data");
+							}
+						}
+					}
+				}
+					
+				bw.newLine();
+				bw.write("All times:");
+				bw.newLine();
+				//int n = 1;
+				for (RaceTime racetime : timeArray) {
+					//racetime.globalPosition = n++;
+					bw.write(racetime.toCompressedString());
 					bw.newLine();
 				}
-				bw.write(racetime.racerString());
-				bw.newLine();
-			}*/
-			
+				bw.close();
+				i++;
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+		}
+	}
+	
+	
+	
+	public void outputRacerTimes() {
+		
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder()+"RacerTimes.txt"))) {
+			racerTimes.generateOutput(bw);
 			bw.close();
 			
 		} catch (IOException e) {
@@ -196,10 +208,11 @@ public class DataRead {
 	}
 	
 	public void outputCompactCourseTimes() {
-		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder()+destinationPrefix+"CompactCourseTimes.txt"))) {
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder()+"CompactCourseTimes.txt"))) {
 			int i = 0;
 			for (ArrayList<RaceTime> timeArray: racerTimes.getAllCourses()) {
 				//Collections.sort(timeArray);
+				bw.newLine();
 				bw.write(Yasova.COURSE[i++]);
 				bw.newLine();
 				for (RaceTime racetime : timeArray) {
@@ -218,8 +231,18 @@ public class DataRead {
 		}
 	}
 	public void outputCompactRacerTimes() {
-		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder()+destinationPrefix+"CompactRacerTimes.txt"))) {
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder()+"CompactRacerTimes.txt"))) {
 			racerTimes.generateCompactOutput(bw);
+			
+			bw.close();
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	public void outputCompactComboTimes() {
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder()+"ComboTimes.txt"))) {
+			racerTimes.generateCombosBest(bw);
 			
 			bw.close();
 			
@@ -277,34 +300,8 @@ public class DataRead {
 	}
 	
 	public void racerAnyTimes() {
-		/*ArrayList<ArrayList<RaceTime>> raceTimeArray = new ArrayList<ArrayList<RaceTime>>();
-		ArrayList<RaceTime> racerTimeArray = new ArrayList<RaceTime>();
 		
-		
-		for (int i = 0; i < Yasova.COURSE.length; i++) {
-			raceTimeArray.add(new ArrayList<RaceTime>());
-		}
-		
-		for (DataPoint dataPoint : dataPointList) {
-			if (dataPoint.charId1 == -1 && dataPoint.charId2 == -1) {
-				for (RaceTime raceTime: dataPoint.data) {
-					raceTimeArray.get(dataPoint.courseId).add(raceTime);
-				}
-			}
-		}
-		for (ArrayList<RaceTime> timeArray: raceTimeArray) {
-			Collections.sort(timeArray);
-			int n = 0;
-			for (RaceTime racetime : timeArray) {
-				racetime.globalPosition = n++;
-				racerTimeArray.add(racetime);
-			}
-		}
-		for (RaceTime racetime : racerTimeArray) {
-			//racetime.percentile = 1 - ((double) racetime.globalPosition)/((double)raceTimeArray.get(racetime.course).size()-1);
-		}*/
-		
-		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder()+destinationPrefix+"RacerTop100Times.txt"))) {
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder()+"RacerTop100Times.txt"))) {
 			String previousRacer = null;
 			for (RaceTime racetime : racerTimes.getAllAny()) {
 				if (!racetime.racerName.equals(previousRacer)) {
@@ -338,9 +335,9 @@ public class DataRead {
 		}
 		if (inputPrefix != null) {
 			//Print old data file
-			System.out.println(SettingsFolder.programDataFolder()+inputPrefix.substring(0, inputPrefix.length()-1) + "\\"+inputPrefix+"TA-Leaderboards.txt");
+			System.out.println(SettingsFolder.programDataFolder()+inputPrefix + "\\"+"TA-Leaderboards.txt");
 		//Get a copy of the old data
-		try (BufferedReader br = Files.newBufferedReader(Paths.get(SettingsFolder.programDataFolder()+inputPrefix.substring(0, inputPrefix.length()-1) + "\\"+inputPrefix+"TA-Leaderboards.txt"), StandardCharsets.UTF_8)) {
+		try (BufferedReader br = Files.newBufferedReader(Paths.get(SettingsFolder.programDataFolder()+inputPrefix + "\\"+"TA-Leaderboards.txt"), StandardCharsets.UTF_8)) {
 			String nextLine;
 			DataPoint lastDataPoint = null;
 			while ((nextLine = br.readLine()) != null) {
@@ -359,13 +356,13 @@ public class DataRead {
 			e.printStackTrace();
 		}
 		
-		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder()+destinationPrefix+"NewTimes.txt"))) {
-			try (BufferedWriter anybw = new BufferedWriter(new FileWriter(destinationFolder() + destinationPrefix + "Any+Any NewTimes.txt"))) {
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder()+"NewTimes.txt"))) {
+			try (BufferedWriter anybw = new BufferedWriter(new FileWriter(destinationFolder() +"Any+Any NewTimes.txt"))) {
 			int i = 0;
 			boolean topTenOnly = Settings.settingValue("NewTopTenOnly", "0").equals("1");
-			bw.write(String.format("%s -> %s", inputPrefix.substring(0, inputPrefix.length()-1), destinationPrefix.substring(0, destinationPrefix.length()-1)));
+			bw.write(String.format("%s -> %s", removeYasovaDrop(inputPrefix), removeYasovaDrop(destinationPrefix)));
 			bw.newLine();
-			anybw.write(String.format("%s -> %s", inputPrefix.substring(0, inputPrefix.length()-1), destinationPrefix.substring(0, destinationPrefix.length()-1)));
+			anybw.write(String.format("%s -> %s", removeYasovaDrop(inputPrefix), removeYasovaDrop(destinationPrefix)));
 			anybw.newLine();
 			for (DataPoint dataPoint : racerTimes.getDataPoints()) {
 				//System.out.println(Yasova.COURSE[dataPoint.courseId]);
@@ -427,11 +424,9 @@ public class DataRead {
 			}
 			bw.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		if (Settings.settingValue("UpdatePrevious", "1").equals("1")) {
@@ -442,14 +437,16 @@ public class DataRead {
 	}
 	
 	public void outputCSV() {
-		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder()+destinationPrefix+"TA-times.csv"))) {
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder()+"TA-times.csv"))) {
 			//percentile*100"%", racerName, course, capFirstLowerRest(character1), capFirstLowerRest(character2), minutes, seconds, miliseconds);
 			bw.write("Racer,Course,Character 1,Character 2,Time");
 			bw.newLine();
 			for (DataPoint dataPoint: racerTimes.getDataPoints()) {
+				if (dataPoint.getCharacterId1() != -1 && dataPoint.getCharacterId2() != -1) {
 				for (RaceTime raceTime: dataPoint.data) {
 					bw.write(raceTime.csvString());
 					bw.newLine();
+				}
 				}
 			}
 		} catch (IOException e) {
@@ -465,11 +462,23 @@ public class DataRead {
 			}
 		}
 		sortedList.sort(new DataPointPolishComparator());
-		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder()+destinationPrefix+"TopCombos.txt"))) {
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder()+"Old-TopCombos.txt"))) {
+			bw.write("Max amount used in calculations: " + polishMax);
+			bw.newLine();
 			for(DataPoint point:sortedList) {
 				bw.write(String.format("%d - %.2f%s: %s - %s + %s",Math.min(point.getDataCount(), polishMax) ,point.averagePercentile()*100,"%",point.getCourse(),point.getCharacter1(),point.getCharacter2()));
 				bw.newLine();
 			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	public void outputTopCombos() {
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder()+"CompactComboTimes.txt"))) {
+			racerTimes.generateCombosCompact(bw);
+			
+			bw.close();
+			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -489,14 +498,85 @@ public class DataRead {
 		}
 	}
 	
+	public void outputReadMe() {
+		// TODO update read me
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder()+"ReadMe.txt"))) {
+			writeLine(bw, "Yasova is a manually run program that reads the skydrift TA rankings and processes them into files.");
+			bw.newLine();
+			writeLine(bw, "Note that the program can't differentiate between names that are the same,");
+			writeLine(bw, "and thus treat them as the same person, even if they are not alts");
+			bw.newLine();
+			writeLine(bw, "The '*' symbol marks the files where if there are racers or alts with the same name,");
+			writeLine(bw, "the slower times are ignored");
+			bw.newLine();
+			writeLine(bw, "Placements with '###.' times means that the placement is known, whereas '###?' means that it's");
+			writeLine(bw, "possible that there are others before it that are not on the leaderboard website.");
+			bw.newLine();
+			writeLine(bw, "The program cannot access times beyond the #100 rank on the character/character leaderboards,");
+			writeLine(bw, "which may become relevant on popular combos.");
+			bw.newLine();
+			writeLine(bw, "Notepad ++ is heavely encouraged when reading these files, although obviously not mandatory");
+			bw.newLine();
+			bw.newLine();
+			writeLine(bw, "Below are the files included:");
+			writeLine(bw, "TA-Leaderboards:");
+			writeLine(bw, "    The normal leaderboards as writen on the website.");
+			writeLine(bw, "Any+Any NewTimes:");
+			writeLine(bw, "    See new times file, but only for leaderboards that ignore characters (aka any/any).");
+			writeLine(bw, "ComboCount:");
+			writeLine(bw, "    Fun file that counts how many records of each combo there are.");
+			writeLine(bw, "    \"+\" indicates that there could be and likely are more than could be found.");
+			writeLine(bw, "ComboTimes (Used to be CompactComboTimes):");
+			writeLine(bw, "    Posts the best time on each course for each combo.");
+			writeLine(bw, "    Ranks based on the average of each record's \"WR/PR\" (World record time / That time.)");
+			writeLine(bw, "CompactComboTimes (Updated version of the old TopCombos):");
+			writeLine(bw, "    Sorts the Anys, Double Characters, and all the (non-Any) rankings of each combo.");
+			writeLine(bw, "    Ranks based on the average of each record's \"WR/PR\" (World record time / That time.)");
+			writeLine(bw, "CompactCourseTimes:*");
+			writeLine(bw, "    A reprocessed any/any leaderboard for each course. Goes through ALL known times.");
+			writeLine(bw, "CompactRacerTimes:*");
+			writeLine(bw, "    Show's each racer's best time on each course.");
+			writeLine(bw, "    Ranks all racers with all courses based on total time, then the rest alphabetically.");
+			writeLine(bw, "CourseTimes:");
+			writeLine(bw, "    Folder that has each course's top 10 times and #100 time,");
+			writeLine(bw, "    each character combo best time and their world record and character record comparison,");
+			writeLine(bw, "    and all times. Racers with times without placements here have a faster time.");
+			writeLine(bw, "New Times:");
+			writeLine(bw, "    Shows ALL new times on each course and combo based on the time frame in the first line.");
+			writeLine(bw, "    Uses JP time, with the first date in the top line inclusivly and the second date exclusivly.");
+			writeLine(bw, "RacerTimes:");
+			writeLine(bw, "    Shows ALL times for each racer, sorted by name.");
+			writeLine(bw, "RacerTop100Times:");
+			writeLine(bw, "    Shows ALL times for each racer that make top 100 on the any/any leaderboard.");
+			writeLine(bw, "    Notably does not ignore duplicate names.");
+			writeLine(bw, "TA-times.csv:");
+			writeLine(bw, "    CSV file (spreadsheet file) of the times.");/*
+			writeLine(bw, "TopCombos or Old-TopCombos:");
+			writeLine(bw, "    Should be dead, if it still exists someone asked for it. Calculates the WR/PR of the top X times,");
+			writeLine(bw, "    where X is the number given at the top of the document");*/
+			writeLine(bw, "Suzunaan:");
+			writeLine(bw, "    Used for another program. You can ignore it unless it ends up being released");
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 	private String destinationFolder() {
-		String output = SettingsFolder.programDataFolder() + destinationPrefix.substring(0, destinationPrefix.length()-1) + "\\";
+		String output = SettingsFolder.programDataFolder() + destinationPrefix + "\\";
 		SettingsFolder.prepFolder(output);
 		return output;
 	}
 	private String targetFolder() {
-		String output = SettingsFolder.programDataFolder() + targetPrefix.substring(0, targetPrefix.length()-1) + "\\";
+		String output = SettingsFolder.programDataFolder() + targetPrefix + "\\";
 		SettingsFolder.prepFolder(output);
 		return output;
+	}
+	public static String removeYasovaDrop(String input) {
+		return (input.length()>11 && input.substring(0, 11).equals("YasovaDrop-"))?input.substring(11):input;
+	}
+	
+	public static void writeLine(BufferedWriter bw, String line) throws IOException {
+		bw.write(line);
+		bw.newLine();
 	}
 }

@@ -38,6 +38,8 @@ public class Yasova {
 	public static final String[] CHARAS = new String[] {"tu_chara_0", "tu_chara_1", "tu_chara_2", "tu_chara_3", "tu_chara_4", "tu_chara_5", "tu_chara_6", "tu_chara_7", "tu_chara_8", "tu_chara_9"};
 	public static final String[] QUICKCHAR = new String[] {"Any", "Reimu", "Marisa", "Sakuya", "Remilia", "Sanae", "Suwako", "Koishi", "Kokoro", "Youmu", "Udonge", "Nue", "Futo", "Cirno", "Seija", "Suika", "Kasen", "Tenshi", "Yukari", "Clown", "Flan", "Alice", "Orin"};
 	public static final String[] COURSE = new String[] {"MARI-CIRCUIT", "FOREST OF MAGIC", "HUMAN VILLAGE", "SCARLET DEVIL MANSION", "LOST BAMBOO THICKET", "YOUKAI MOUNTAIN", "SEIRENSEN", "HAKUGYOKURO", "EMBERS OF BLAZING HELL", "MISTY LAKE", "OLD CAPITAL", "MARI-CIRCUIT 2", "THE OUTSIDE WORLD", "VOILE LIBRARY", "SEA OF TRANQUILITY", "MOONLIT THICKET", "UNDERWORLD CITY DEPTHS", "REDEVELOPMENT AREA A", "REDEVELOPMENT AREA B", "HEAVEN"};
+	public static final String[] COURSE_PROPER = new String[] {"Mari-Circuit", "Forest of Magic", "Human Village", "Scarlet Devil Mansion", "Lost Bamboo Thicket", "Youkai Mountain", "Seirensen", "Hakugyokuro", "Embers of Blazing Hell", "Misty Lake", "Old Capital", "Mari-Circuit 2", "The Outside World", "Voile Library", "Sea of Tranquility", "Moonlit Thicket", "Underworld City Depths", "Redevelopment Area A", "Redevelopment Area B", "Heaven"};
+	public static final String[] SMOL_COURSE = new String[] {"Mari-1", "Forest", "Village", "Mansion", "Bamboo", "Mountain", "Seirensen", "Haku", "Embers", "Misty", "Old Cap", "Mari-2", "Outside", "Library", "Sea", "Moonlit", "Depths", "RDA", "RDB", "Heaven"};
 	private String prefix;
 
 	public Yasova(String prefix) throws InterruptedException {
@@ -269,7 +271,7 @@ public class Yasova {
 	}
 	
 	private String prefixFolder() {
-		String output = SettingsFolder.programDataFolder() + prefix.substring(0, prefix.length()-1) + "\\";
+		String output = SettingsFolder.programDataFolder() + prefix + "\\";
 		SettingsFolder.prepFolder(output);
 		return output;
 	}

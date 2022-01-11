@@ -7,6 +7,7 @@ public class RaceTime implements Comparable<RaceTime> {
 	int minutes;
 	int seconds;
 	int miliseconds;
+	int[] laps;
 	public int placement;
 	public String character1;
 	public String character2;
@@ -18,6 +19,7 @@ public class RaceTime implements Comparable<RaceTime> {
 	public boolean topTime;
 	
 	public RaceTime(String input, int inputCourse) {
+		laps = new int[3];
 		dataParse(input);
 		course = inputCourse;
 		topTime = false;
@@ -34,16 +36,56 @@ public class RaceTime implements Comparable<RaceTime> {
 		seconds = Integer.parseInt(input.substring(0, 2));
 		input = input.substring(3);
 		miliseconds = Integer.parseInt(input.substring(0, 3));
-		//System.out.println(input);
-		input = input.substring(input.indexOf("|") + 2);
+		input = input.substring(6);
+		input = getLaps(input);
 		character1 = input.substring(0, input.indexOf("/"));
 		input = input.substring(input.indexOf("/") + 1);
 		character2 = input;
 	}
+	private String getLaps(String input) {
+		String tempinput = "";
+		for (int i = 0; i <3; i++) {
+			switch (i) {
+			case 0:
+			case 1:
+				tempinput = input.substring(0, input.indexOf(',')).trim();
+				break;
+			case 2:
+				tempinput = input.substring(0,input.indexOf('|')).trim();
+				break;
+			}
+			//String tempinput = ((i>0)?input.substring(0, input.indexOf((i==2)? '|':',')):input).trim();
+			if (tempinput.length() < 3) {
+				break;
+			}
+				int tempMinutes = Integer.parseInt(tempinput.substring(input.indexOf('0'), 2));
+				tempinput = input.substring(input.indexOf(':')+1);
+				int tempSeconds = Integer.parseInt(tempinput.substring(0, 2));
+				tempinput = tempinput.substring(3);
+				int tempMili = Integer.parseInt(tempinput.substring(0, 3));
+				laps[i] = miliTime(tempMinutes, tempSeconds, tempMili);
+				if (i < 2) {
+					input = input.substring(input.indexOf(',')+1);
+				}
+		}
+		return input.substring(input.indexOf('|') + 2);
+	}
+
 	public int miliTime() {
 		return miliseconds+seconds*1000+minutes*60000;
 	}
-
+	public static int miliTime(int minutes, int seconds, int miliseconds) {
+		return miliseconds+seconds*1000+minutes*60000;
+	}
+	public String miliTimeString() {
+		return String.format("%02d:%02d:%03d", minutes, seconds, miliseconds);
+	}
+	public static String miliTimeString(int miliTime) {
+		return String.format("%02d:%02d:%03d", miliTime/60000, (miliTime/1000)%60000, miliTime%1000);
+	}
+	public static String miliTimeString(int minutes, int seconds, int miliseconds) {
+		return String.format("%02d:%02d:%03d", minutes, seconds, miliseconds);
+	}
 	public int compareTo(RaceTime other) {
 		//System.out.println(String.format("%02d:%02d:%03d :- %02d:%02d:%03d == %d",minutes, seconds, miliseconds, other.minutes, other.seconds, other.miliseconds, miliseconds+seconds*1000+minutes*60000 - (other.miliseconds+other.seconds*1000+other.minutes*60000)));
 		return miliTime() - (other.miliTime());
@@ -54,9 +96,14 @@ public class RaceTime implements Comparable<RaceTime> {
 				positionlesstoString();
 	}
 	public String toCompressedString() {
-		return String.format("%4s%s %-7s + %-7s (%02d:%02d:%03d) by %s", Integer.toString(globalUniquePosition),(perfectVision)?".":"?", capFirstLowerRest(character1), capFirstLowerRest(character2), minutes, seconds, miliseconds, racerName);
+		return String.format("%4s%s %-7s + %-7s (%02d:%02d:%03d) by %s", (globalUniquePosition == 0)?"":Integer.toString(globalUniquePosition),(perfectVision)?".":"?", capFirstLowerRest(character1), capFirstLowerRest(character2), minutes, seconds, miliseconds, racerName);
 	}
-	
+	public String toCourseFileString() {
+		return String.format("%5s %-7s + %-7s (%02d:%02d:%03d) by %s", Integer.toString(placement)+ ".", capFirstLowerRest(character1), capFirstLowerRest(character2), minutes, seconds, miliseconds, racerName);
+	}
+	public String toSmolCourseFileString() {
+		return String.format("(%s) by %s", miliTimeString(), racerName);
+	}
 	public String positionlesstoString() {
 		return String.format(" %-7s + %-7s #%02d (%02d:%02d:%03d) by %s", capFirstLowerRest(character1), capFirstLowerRest(character2), placement, minutes, seconds, miliseconds, racerName);
 	}
@@ -73,7 +120,7 @@ public class RaceTime implements Comparable<RaceTime> {
 	}
 	
 	public String csvString() {
-		return String.format("\"%s\",%s,%s,%s,%d",racerName, Yasova.COURSE[course], capFirstLowerRest(character1), capFirstLowerRest(character2), miliTime());
+		return String.format("\"%s\",%s,%s,%s,%d,%d,%d,%d",racerName, Yasova.COURSE[course], capFirstLowerRest(character1), capFirstLowerRest(character2),laps[0],laps[1],laps[2], miliTime());
 	}
 	
 	public boolean equals(Object input) {
@@ -91,5 +138,6 @@ public class RaceTime implements Comparable<RaceTime> {
 	public static String capFirstLowerRest(String input) {
 		return input.substring(0, 1) + input.substring(1).toLowerCase();
 	}
-
+	
+	
 }

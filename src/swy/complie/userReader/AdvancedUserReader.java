@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import drafterdat.settings.Settings;
 import drafterdat.settings.SettingsFolder;
 import swy.compile.DataPoint;
-import swy.yeet.RunYasova;
+import swy.yoink.RunYasova;
 
 public class AdvancedUserReader {
 	String prefix;

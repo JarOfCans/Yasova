@@ -10,7 +10,7 @@ import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import drafterdat.settings.SettingsFolder;
-import swy.yeet.RunYasova;
+import swy.yoink.RunYasova;
 
 public class FlanFixer {
 	public static void main(String[] args) throws InterruptedException {
