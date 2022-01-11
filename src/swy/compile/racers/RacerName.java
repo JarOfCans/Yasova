@@ -67,11 +67,18 @@ public class RacerName implements Comparable<RacerName> {
 		}
 	}
 	public String getTimeString() {
-		int total = totalTime();
+		return getTimeString(totalTime());
+		/*int total = totalTime();
 		if (total == 0) {
 			return null;
 		}
-		return String.format("%02d:%02d:%03d", total/60000,(total/1000)%60,total%1000);
+		return String.format("%02d:%02d:%03d", total/60000,(total/1000)%60,total%1000);*/
+	}
+	public static String getTimeString(int input) {
+		if (input == 0) {
+			return null;
+		}
+		return String.format("%02d:%02d:%03d", input/60000,(input/1000)%60,input%1000);
 	}
 	public static String getTimeString(int input) {
 		if (input == 0) {
