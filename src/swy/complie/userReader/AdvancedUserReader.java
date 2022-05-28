@@ -39,7 +39,7 @@ public class AdvancedUserReader {
 			while ((nextLine = br.readLine()) != null) {
 				if (nextLine.length() > 0 && !(Character.isDigit(nextLine.charAt(0))) && !(nextLine.equals("    1. No Data"))) {
 					if (nextLine.charAt(0) == ' ') {
-						lastDataPoint.addData(nextLine);
+						lastDataPoint.addData(nextLine, null);
 					}
 					else {
 						lastDataPoint = new DataPoint(nextLine);

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import drafterdat.settings.Settings;
 import swy.core.ID;
 import swy.core.RaceTime;
+import swy.websitereader.IgnoredData;
 
 public class DataPoint {
 	private String character1;
@@ -42,8 +43,14 @@ public class DataPoint {
 		courseId = ID.getCourseID(course);
 	}
 	
-	public void addData(String dataPoint) {
-		data.add(new RaceTime(dataPoint, courseId));
+	public RaceTime addData(String dataPoint, IgnoredData id) {
+		RaceTime rt = new RaceTime(dataPoint, courseId);
+		if (id == null || id.isValid(rt.miliTimeString(rt.miliTime()), course, rt.characters)) {
+			data.add(rt);
+		} else {
+			rt.valid = false;
+		}
+		return rt;
 	}
 	
 	public int getDataCount() {

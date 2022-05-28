@@ -220,7 +220,7 @@ public class RacerBatch {
 	}
 	
 	public void bake() {
-		System.out.println("Baked");
+		System.out.println("Baking");
 		for (DataPoint data:tables) {
 			if (data.getCharacterId1() != -1 && data.getCharacterId2() != -1) {
 				//System.out.println("dp size: "+input.getDataCount());
@@ -233,7 +233,6 @@ public class RacerBatch {
 		for (RacerName name: racers) {
 			name.bake();
 		}
-		Collections.sort(racers);
 		//NormalDistribution dist = new NormalDistribution();
 		for (ArrayList<RaceTime> hoi: courseTimes) {
 			//System.out.println(hoi.size());
@@ -252,12 +251,11 @@ public class RacerBatch {
 				
 				//double zScore = (racetime.miliTime()-mean)/sd;
 				racetime.percentile = ((double)top)/racetime.miliTime();//1.0 - dist.cumulativeProbability(zScore);//1 - ((double) racetime.globalPosition)/((double)courseTimes.get(racetime.course).size()-1);
-				if (racetime.placement == 100) {
+				if (racetime.rawPlacement == 100) {
 					known = false;
 				}
 			}
 		}
-
 		combos = new ArrayList<Combo>();
 		anyCombos = new ArrayList<Combo>();
 		doubleCombos = new ArrayList<Combo>();
@@ -297,7 +295,18 @@ public class RacerBatch {
 				rt.percentile = ((double)courseTimes.get(rt.course).get(0).miliTime())/rt.miliTime();
 			}
 		}
+		for (RacerName hoi: racers) {
+			for (RaceTime rt: hoi.times) {
+				rt.percentile = ((double)courseTimes.get(rt.course).get(0).miliTime())/rt.miliTime();
+				//System.out.println(rt.percentile);
+			}
+		}
+		Collections.sort(racers);
+
+
+		System.out.println("Baked");
 	}
+	
 	/*@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof String) {

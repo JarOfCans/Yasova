@@ -61,9 +61,9 @@ public class RacerName implements Comparable<RacerName> {
 	public String timeName(int i) {
 		String timeString = getTimeString();
 		if (timeString != null)
-			return String.format("%s - %s: %s, Average placement: %.2f%s", name, ordinal(i), timeString, averageSpot(), (allConfirmed())? "":"?");
+			return String.format("%s - %s: %.2f%s, %s, Average placement: %.2f%s", name, ordinal(i), averageWRPR()*100, "%", timeString, averageSpot(), (allConfirmed())? "":"?");
 		else {
-			return name;
+			return String.format("%s: %.2f, Average placement: %.2f%s", name, averageWRPR()*100, averageSpot(), (allConfirmed())? "":"?");
 		}
 	}
 	public String getTimeString() {
@@ -80,12 +80,12 @@ public class RacerName implements Comparable<RacerName> {
 		}
 		return String.format("%02d:%02d:%03d", input/60000,(input/1000)%60,input%1000);
 	}
-	public static String getTimeString(int input) {
+	/*public static String getTimeString(int input) {
 		if (input == 0) {
 			return null;
 		}
 		return String.format("%02d:%02d:%03d", input/60000,(input/1000)%60,input%1000);
-	}
+	}*/
 	public boolean allConfirmed() {
 		for (int i = 0; i < bestTimes.length; i++) {
 			RaceTime time = bestTimes[i];
@@ -127,6 +127,36 @@ public class RacerName implements Comparable<RacerName> {
 		}
 		return ((float) output )/ total;
 	}
+	
+
+	
+	public float averageWRPR() {
+		float output = 0;
+		int total = 0;
+		for (int i = 0; i < bestTimes.length; i++) {
+			RaceTime time = bestTimes[i];
+			if (time != null) {
+				total++;
+				output += time.percentile;
+			}
+		}
+		return ((float) output )/ total;
+	}
+	
+	public float averageAllWRPR() {
+		float output = 0;
+		int total = 0;
+		for (int i = 0; i < bestTimes.length; i++) {
+			RaceTime time = bestTimes[i];
+			if (time != null) {
+				total++;
+				output += time.percentile;
+			} else {
+				return 0;
+			}
+		}
+		return ((float) output )/ total;
+	}
 	/*public ArrayList<RaceTime> getAllCourse(int courseId) {
 		ArrayList<RaceTime> output = new ArrayList<RaceTime>();
 		for (RaceTime hoi: times) {
@@ -138,8 +168,9 @@ public class RacerName implements Comparable<RacerName> {
 	}*/
 	@Override
 	public int compareTo(RacerName o) {
-		int oTime = o.totalTime();
-		int thisTotal = this.totalTime();
+		//System.out.println(o.averageAllWRPR());
+		int oTime = (int) (o.averageAllWRPR()*10000);
+		int thisTotal = (int) (this.averageAllWRPR()*10000);
 		if (thisTotal == 0 && oTime == 0) {
 			return this.name.toLowerCase().compareTo(o.name.toLowerCase());
 		}
@@ -149,7 +180,7 @@ public class RacerName implements Comparable<RacerName> {
 		else if (oTime == 0) {
 			return -1;
 		}
-		return thisTotal - oTime;
+		return oTime - thisTotal;
 	}
 
 	public void bake() {

@@ -16,6 +16,7 @@ import drafterdat.settings.Settings;
 import drafterdat.settings.SettingsFolder;
 import swy.compile.racers.RacerBatch;
 import swy.core.RaceTime;
+import swy.websitereader.IgnoredData;
 import swy.yoink.RunYasova;
 import swy.yoink.Yasova;
 
@@ -23,13 +24,18 @@ public class DataRead {
 	private String targetPrefix;
 	private String destinationPrefix;
 	public static int polishMax;
+	ArrayList<RaceTime> droppedTimes;
 	RacerBatch racerTimes;
+	IgnoredData ignoredData;
+	
 	public static void main(String[] args) throws InterruptedException {
 		RunYasova.main(new String[0]);
 	}
 	
 	public DataRead(String destination) {
 		racerTimes = new RacerBatch();
+		ignoredData = new IgnoredData();
+		droppedTimes = new ArrayList<RaceTime>();
 		destinationPrefix = destination;
 		targetPrefix = Settings.settingValue("OverrideReadLocation", "");
 		if (targetPrefix.length() < 1) {
@@ -39,14 +45,23 @@ public class DataRead {
 		try (BufferedReader br = Files.newBufferedReader(Paths.get(targetFolder()+"TA-Leaderboards.txt"), StandardCharsets.UTF_8)) {
 			String nextLine;
 			DataPoint lastDataPoint = null;
+			int removed = 0;
 			while ((nextLine = br.readLine()) != null) {
 				if (nextLine.length() > 0 && !(Character.isDigit(nextLine.charAt(0))) && !(nextLine.equals("    1. No Data"))) {
 					if (nextLine.charAt(0) == ' ') {
-						lastDataPoint.addData(nextLine);
+						RaceTime valid = lastDataPoint.addData(nextLine, ignoredData);
+						valid.placement -= removed;
+						if (!valid.valid) {
+							removed++;
+							if (lastDataPoint.getCharacterId1() != -1 && lastDataPoint.getCharacterId2() != -1) {
+								droppedTimes.add(valid);
+							}
+						}
 					}
 					else {
 						lastDataPoint = new DataPoint(nextLine);
 						racerTimes.addDataPoint(lastDataPoint);
+						removed = 0;
 					}
 				}
 			}
@@ -73,6 +88,7 @@ public class DataRead {
 		racerAnyTimes();
 		outputSuzunaanFile();
 		outputReadMe();
+		outputDropped();
 		
 		//outputBabyYasova();
 		System.out.println("DataRead done");
@@ -122,7 +138,7 @@ public class DataRead {
 		int i = 0;
 		SettingsFolder.prepFolder(destinationFolder() + "CourseTimes\\");
 		for (ArrayList<RaceTime> timeArray: racerTimes.getAllCourses()) {
-			System.out.println(Yasova.COURSE_PROPER[i]);
+			//System.out.println(Yasova.COURSE_PROPER[i]);
 			try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder() + "CourseTimes\\"+Yasova.COURSE_PROPER[i]+".txt"))) {
 			//Collections.sort(timeArray);
 				//bw.write("Ur Mom Gae");
@@ -344,7 +360,7 @@ public class DataRead {
 				//System.out.println(nextLine.length());
 				if (nextLine.length() > 0 && !(Character.isDigit(nextLine.charAt(0))) && !(nextLine.equals("    1. No Data"))) {
 					if (nextLine.charAt(0) == ' ') {
-						lastDataPoint.addData(nextLine);
+						lastDataPoint.addData(nextLine, ignoredData);
 					}
 					else {
 						lastDataPoint = new DataPoint(nextLine);
@@ -375,9 +391,14 @@ public class DataRead {
 						}
 					}
 				}
-				if (times.size() > 0) {
+				ArrayList<RaceTime> oldTimes = oldPoint.oldData(dataPoint);
+				if (times.size() > 0 || oldTimes.size() > 0) {
 					bw.write(String.format("%s: %s + %s",Yasova.COURSE[dataPoint.getCourseId()],Yasova.getCharacter(dataPoint.getCharacterId1()+1),Yasova.getCharacter(dataPoint.getCharacterId2()+1)));
 					bw.newLine();
+					if (times.size() == 0) {
+						bw.write(" No new times");
+						bw.newLine();
+					}
 					for (RaceTime hoi : times) {
 						bw.write(hoi.positionlesstoString());
 						bw.newLine();
@@ -390,7 +411,6 @@ public class DataRead {
 							anybw.newLine();
 						}
 					}
-					ArrayList<RaceTime> oldTimes = oldPoint.oldData(dataPoint);
 					if (topTenOnly) {
 						for (int m = 0; m < oldTimes.size();m++) {
 							if (oldTimes.get(m).placement > 10) {
@@ -497,7 +517,15 @@ public class DataRead {
 			e.printStackTrace();
 		}
 	}
-	
+	public void outputDropped() {
+		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder() + "DroppedTimes.txt"))) {
+			for (RaceTime hoi: droppedTimes) {
+					writeLine(bw, hoi.csvString());
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 	public void outputReadMe() {
 		// TODO update read me
 		try (BufferedWriter bw = new BufferedWriter(new FileWriter(destinationFolder()+"ReadMe.txt"))) {
@@ -519,6 +547,10 @@ public class DataRead {
 			bw.newLine();
 			bw.newLine();
 			writeLine(bw, "Below are the files included:");
+			writeLine(bw, "CourseTimes (Folder):");
+			writeLine(bw, "    Folder that has each course's top 10 times and #100 time,");
+			writeLine(bw, "    each character combo best time and their world record and character record comparison,");
+			writeLine(bw, "    and all times. Racers with times without placements here have a faster time.");
 			writeLine(bw, "TA-Leaderboards:");
 			writeLine(bw, "    The normal leaderboards as writen on the website.");
 			writeLine(bw, "Any+Any NewTimes:");
@@ -526,10 +558,10 @@ public class DataRead {
 			writeLine(bw, "ComboCount:");
 			writeLine(bw, "    Fun file that counts how many records of each combo there are.");
 			writeLine(bw, "    \"+\" indicates that there could be and likely are more than could be found.");
-			writeLine(bw, "ComboTimes (Used to be CompactComboTimes):");
+			writeLine(bw, "ComboTimes:");
 			writeLine(bw, "    Posts the best time on each course for each combo.");
 			writeLine(bw, "    Ranks based on the average of each record's \"WR/PR\" (World record time / That time.)");
-			writeLine(bw, "CompactComboTimes (Updated version of the old TopCombos):");
+			writeLine(bw, "CompactComboTimes:");
 			writeLine(bw, "    Sorts the Anys, Double Characters, and all the (non-Any) rankings of each combo.");
 			writeLine(bw, "    Ranks based on the average of each record's \"WR/PR\" (World record time / That time.)");
 			writeLine(bw, "CompactCourseTimes:*");
@@ -537,10 +569,9 @@ public class DataRead {
 			writeLine(bw, "CompactRacerTimes:*");
 			writeLine(bw, "    Show's each racer's best time on each course.");
 			writeLine(bw, "    Ranks all racers with all courses based on total time, then the rest alphabetically.");
-			writeLine(bw, "CourseTimes:");
-			writeLine(bw, "    Folder that has each course's top 10 times and #100 time,");
-			writeLine(bw, "    each character combo best time and their world record and character record comparison,");
-			writeLine(bw, "    and all times. Racers with times without placements here have a faster time.");
+			writeLine(bw, "DroppedTimes.txt:");
+			writeLine(bw, "    Shows all times removed from the analysis. There are updated manually.");
+			writeLine(bw, "    If another file is weird/doesn't add up to 100, check this file to see if a time is here.");
 			writeLine(bw, "New Times:");
 			writeLine(bw, "    Shows ALL new times on each course and combo based on the time frame in the first line.");
 			writeLine(bw, "    Uses JP time, with the first date in the top line inclusivly and the second date exclusivly.");

@@ -9,25 +9,30 @@ public class RaceTime implements Comparable<RaceTime> {
 	int miliseconds;
 	int[] laps;
 	public int placement;
+	public int rawPlacement;
 	public String character1;
 	public String character2;
+	public String characters;
 	public int course;
 	public int globalPosition;
 	public int globalUniquePosition;
 	public double percentile;
 	public boolean perfectVision;
 	public boolean topTime;
+	public boolean valid;
 	
 	public RaceTime(String input, int inputCourse) {
 		laps = new int[3];
 		dataParse(input);
 		course = inputCourse;
 		topTime = false;
+		valid = true;
 	}
 	
 	private void dataParse(String input) {
 		//System.out.println(input.length()<50?input:input.substring(0, 49));
 		placement = Integer.parseInt(input.substring(4, input.indexOf(".")));
+		rawPlacement = placement;
 		input = input.substring(input.indexOf(".") + 2);
 		racerName = input.substring(0, input.indexOf(" (0"));
 		input = input.substring(input.indexOf(" (0") + 2);
@@ -38,6 +43,8 @@ public class RaceTime implements Comparable<RaceTime> {
 		miliseconds = Integer.parseInt(input.substring(0, 3));
 		input = input.substring(6);
 		input = getLaps(input);
+		//Just in case of object shenanigains
+		characters = input.substring(0);
 		character1 = input.substring(0, input.indexOf("/"));
 		input = input.substring(input.indexOf("/") + 1);
 		character2 = input;
@@ -81,7 +88,7 @@ public class RaceTime implements Comparable<RaceTime> {
 		return String.format("%02d:%02d:%03d", minutes, seconds, miliseconds);
 	}
 	public static String miliTimeString(int miliTime) {
-		return String.format("%02d:%02d:%03d", miliTime/60000, (miliTime/1000)%60000, miliTime%1000);
+		return String.format("%02d:%02d:%03d", miliTime/60000, (miliTime/1000)%60, miliTime%1000);
 	}
 	public static String miliTimeString(int minutes, int seconds, int miliseconds) {
 		return String.format("%02d:%02d:%03d", minutes, seconds, miliseconds);
@@ -113,7 +120,7 @@ public class RaceTime implements Comparable<RaceTime> {
 	}
 
 	public String compactString() {
-		return String.format("%4s%s %-7s + %-7s (%02d:%02d:%03d) on %s", Integer.toString(globalUniquePosition),(perfectVision)?".":"?", capFirstLowerRest(character1), capFirstLowerRest(character2), minutes, seconds, miliseconds, Yasova.COURSE[course]);
+		return String.format("%4s%s %-7s + %-7s (%02d:%02d:%03d | %.2f%s) on %s", Integer.toString(globalUniquePosition),(perfectVision)?".":"?", capFirstLowerRest(character1), capFirstLowerRest(character2), minutes, seconds, miliseconds, percentile*100, "%", Yasova.COURSE[course]);
 	}
 	public String racerAnyString() {
 		return String.format(" %-7s + %-7s #%02d (%02d:%02d:%03d) on %s", capFirstLowerRest(character1), capFirstLowerRest(character2), placement, minutes, seconds, miliseconds, Yasova.COURSE[course]);
