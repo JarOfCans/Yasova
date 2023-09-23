@@ -43,8 +43,8 @@ public class InnocentTreasures {
 		//driver = new FirefoxDriver();
 		this.prefix = prefix;
 		check = new TimeTeller();
-		WEBSITE_BREAK = Integer.parseInt(Settings.settingValue("InnocentTreasuresWebsiteBreak", "250"));
-		courseTotal = Integer.parseInt(Settings.settingValue("CourseTotal", "20"));
+		WEBSITE_BREAK = Integer.parseInt(Settings.settingValue("InnocentTreasuresWebsiteBreak", "25"));
+		courseTotal = Integer.parseInt(Settings.settingValue("CourseTotal", "21"));
 		characterTotal = Integer.parseInt(Settings.settingValue("CharacterTotal", "22")) + 1;
 		
 		if (Settings.settingValue("DoCourseInit", "0").equals("1")) {
@@ -103,14 +103,14 @@ public class InnocentTreasures {
 
 						//List<String> val = getValuesOnPage();
 						if (!values.hasData()) {
-							bw.write("    1. No Data");
+							bw.write("  1. No Data");
 							bw.newLine();
 						}
 						else {
 							int placement = 0;
 							while (values.hasData(placement)) {
 								ArrayList<String> thisData = values.getData(placement++);
-								bw.write(String.format("    %s. %s (%s): %s, %s, %s | %s", thisData.get(0), thisData.get(1), thisData.get(2), thisData.get(3), thisData.get(4), thisData.get(5), thisData.get(6)));
+								bw.write(String.format("  %s. %s (%s): %s, %s, %s | %s", thisData.get(0), thisData.get(1), thisData.get(2), thisData.get(3), thisData.get(4), thisData.get(5), thisData.get(6)));
 								bw.newLine();
 								bw.flush();
 							}

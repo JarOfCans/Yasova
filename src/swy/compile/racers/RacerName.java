@@ -3,6 +3,7 @@ package swy.compile.racers;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import drafterdat.settings.Settings;
 import swy.compile.NameSortComparable;
 import swy.core.RaceTime;
 import swy.yoink.Yasova;
@@ -11,6 +12,7 @@ public class RacerName implements Comparable<RacerName> {
 	String name;
 	ArrayList<RaceTime> times;
 	RaceTime[] bestTimes;
+	public static final int MISSES_ALLOWED = Integer.parseInt(Settings.settingValue("MissesAllowedForCompactRacer", "11"));
 	//ArrayList<RaceTime>[] courseTimes;
 	
 	
@@ -62,6 +64,9 @@ public class RacerName implements Comparable<RacerName> {
 		String timeString = getTimeString();
 		if (timeString != null)
 			return String.format("%s - %s: %.2f%s, %s, Average placement: %.2f%s", name, ordinal(i), averageWRPR()*100, "%", timeString, averageSpot(), (allConfirmed())? "":"?");
+		else if (allowedMisses()) {
+			return String.format("%s - %s: %.2f%s, --:--:---, Average placement: %.2f%s", name, ordinal(i), averageWRPR()*100, "%", averageSpot(), (allConfirmed())? "":"?");
+		}
 		else {
 			return String.format("%s: %.2f, Average placement: %.2f%s", name, averageWRPR()*100, averageSpot(), (allConfirmed())? "":"?");
 		}
@@ -87,9 +92,15 @@ public class RacerName implements Comparable<RacerName> {
 		return String.format("%02d:%02d:%03d", input/60000,(input/1000)%60,input%1000);
 	}*/
 	public boolean allConfirmed() {
+		int misses = 0;
 		for (int i = 0; i < bestTimes.length; i++) {
 			RaceTime time = bestTimes[i];
-			if (time == null || !time.perfectVision) {
+			if (time == null) {
+				misses++;
+				if (misses > MISSES_ALLOWED) {
+					return false;
+				}
+			} else if (!time.perfectVision) {
 				return false;
 			}
 		}
@@ -146,16 +157,35 @@ public class RacerName implements Comparable<RacerName> {
 	public float averageAllWRPR() {
 		float output = 0;
 		int total = 0;
+		int timesNotHad = 0;
 		for (int i = 0; i < bestTimes.length; i++) {
 			RaceTime time = bestTimes[i];
 			if (time != null) {
 				total++;
 				output += time.percentile;
 			} else {
-				return 0;
+				timesNotHad++;
+				if (timesNotHad > MISSES_ALLOWED) {
+					return 0;
+				}
 			}
 		}
 		return ((float) output )/ total;
+	}
+	
+	public boolean allowedMisses() {
+		int timesNotHad = 0;
+		for (int i = 0; i < bestTimes.length; i++) {
+			RaceTime time = bestTimes[i];
+			if (time != null) {
+			} else {
+				timesNotHad++;
+				if (timesNotHad > MISSES_ALLOWED) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 	/*public ArrayList<RaceTime> getAllCourse(int courseId) {
 		ArrayList<RaceTime> output = new ArrayList<RaceTime>();

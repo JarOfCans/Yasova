@@ -53,11 +53,11 @@ public class Combo {
 		return totalTime;
 	}
 	
-	public void write(BufferedWriter bw, int i) throws IOException {
+	public void writeAny(BufferedWriter bw, int i) throws IOException {
 		//System.out.println(i);
 		//String comboString = String.format("%s/%s", times.get(0).character1, times.get(0).character2);
 		if (times.size() != Yasova.COURSE.length) {
-			bw.write(String.format("%s: %s - ( %02d / %d ), Average WR/PR = %.2f%%",RacerName.ordinal(i),String.format("%s + %s", Yasova.QUICKCHAR[charId1+1], Yasova.QUICKCHAR[charId2+1]), times.size(), Yasova.COURSE.length, getAveragePercentage()*100));
+			bw.write(String.format("%s: %s - ( %02d/%d ), Average WR/PR = %.2f%%",RacerName.ordinal(i),String.format("%s + %s", Yasova.QUICKCHAR[charId1+1], Yasova.QUICKCHAR[charId2+1]), times.size(), Yasova.COURSE.length, getAveragePercentage()*100));
 			bw.newLine();
 		}
 		else {
@@ -69,7 +69,7 @@ public class Combo {
 			done = false;
 			for (RaceTime time:times) {
 				if (time.course == j) {
-				bw.write(String.format("  %-10s %s (%.2f%%) by %s", String.format("%s:", Yasova.SMOL_COURSE[j]), RacerName.getTimeString(time.miliTime()), time.percentile*100, time.racerName));
+				bw.write(String.format(" %-10s %s %-9s w/ %-8sby %s", String.format("%s:", Yasova.SMOL_COURSE[j]), RacerName.getTimeString(time.miliTime()), String.format("(%.2f%%)", time.percentile*100), (Yasova.QUICKCHAR[charId1+1].equals(RaceTime.capFirstLowerRest(time.character1)))?RaceTime.capFirstLowerRest(time.character2):RaceTime.capFirstLowerRest(time.character1),time.racerName));
 				bw.newLine();
 				done = true;
 				break;
@@ -78,7 +78,37 @@ public class Combo {
 			if(done) {
 				continue;
 			}
-			bw.write(String.format("  %-10s -", String.format("%s:", Yasova.SMOL_COURSE[j])));
+			bw.write(String.format(" %-10s -", String.format("%s:", Yasova.SMOL_COURSE[j])));
+			bw.newLine();
+		}
+	}
+	
+	public void write(BufferedWriter bw, int i) throws IOException {
+		//System.out.println(i);
+		//String comboString = String.format("%s/%s", times.get(0).character1, times.get(0).character2);
+		if (times.size() != Yasova.COURSE.length) {
+			bw.write(String.format("%s: %s - ( %02d/%d ), Average WR/PR = %.2f%%",RacerName.ordinal(i),String.format("%s + %s", Yasova.QUICKCHAR[charId1+1], Yasova.QUICKCHAR[charId2+1]), times.size(), Yasova.COURSE.length, getAveragePercentage()*100));
+			bw.newLine();
+		}
+		else {
+			bw.write(String.format("%s: %s - %s, Average WR/PR = %.2f%%",RacerName.ordinal(i),String.format("%s + %s", Yasova.QUICKCHAR[charId1+1], Yasova.QUICKCHAR[charId2+1]), RacerName.getTimeString(getTotalTime()), getAveragePercentage()*100));
+			bw.newLine();
+		}
+		boolean done;
+		for (int j = 0; j < Yasova.COURSE.length; j++) {
+			done = false;
+			for (RaceTime time:times) {
+				if (time.course == j) {
+				bw.write(String.format(" %-10s %s %-9s by %s", String.format("%s:", Yasova.SMOL_COURSE[j]), RacerName.getTimeString(time.miliTime()), String.format("(%.2f%%)", time.percentile*100), time.racerName));
+				bw.newLine();
+				done = true;
+				break;
+				}
+			}
+			if(done) {
+				continue;
+			}
+			bw.write(String.format(" %-10s -", String.format("%s:", Yasova.SMOL_COURSE[j])));
 			bw.newLine();
 		}
 	}

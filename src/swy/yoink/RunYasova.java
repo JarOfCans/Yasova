@@ -4,6 +4,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Scanner;
 import java.util.TimeZone;
 
 import drafterdat.settings.Settings;
@@ -16,7 +17,21 @@ public class RunYasova {
 		
 		long time = System.currentTimeMillis();
 		Settings.pullSettings();
-		if (true) {
+		
+		boolean run = true;
+		if (Settings.settingValue("AskToRun", "1").equals("1")) {
+		Scanner scanner = new Scanner(System.in);
+		System.out.println("Did you mean to run the program? (y/n)");
+		String input = scanner.nextLine();
+		if (!input.toLowerCase().equals("y")) {
+			run = false;
+			System.out.println("Not running Yasova");
+		} else {
+			System.out.println("Running Yasova");
+		}
+		scanner.close();
+		}
+		if (run) {
 			//System.out.println(Charset.defaultCharset());
 		//System.setProperty("webdriver.gecko.driver", System.getProperty("user.home")+"\\eclipse-workspace\\Yasova\\geckodriver-v0.27.0-win32\\geckodriver.exe");
 		TimeZone tz = TimeZone.getTimeZone("JST");

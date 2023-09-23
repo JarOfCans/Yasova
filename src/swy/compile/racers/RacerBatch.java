@@ -64,10 +64,17 @@ public class RacerBatch {
 
 	public void generateCompactOutput(BufferedWriter bw) throws IOException {
 		int i = 1;
+		int writeI = 1;
+		RacerName lastRacer = null;
 		for (RacerName hoi : racers) {
-			bw.write(hoi.timeName(i++));
+			if (lastRacer != null && lastRacer.compareTo(hoi) != 0) {
+				writeI = i;
+			}
+			lastRacer = hoi;
+			bw.write(hoi.timeName(writeI));
 			bw.newLine();
 			bw.write(hoi.topOutput());
+			i++;
 		}
 	}
 	
@@ -84,8 +91,29 @@ public class RacerBatch {
 	public void generateCombosBest(BufferedWriter bw) throws IOException {
 		Collections.sort(combos, new ComboSortComparator());
 		int i = 1;
+		int writeI = 1;
+		Combo lastCombo = null;
 		for (Combo combo: combos) {
-			combo.write(bw, i++);
+			if (lastCombo != null && lastCombo.getTotalTime() != combo.getTotalTime()) {
+				writeI = i;
+			}
+			lastCombo = combo;
+			combo.write(bw, writeI);
+			i++;
+		}
+	}
+	public void generateAnyCombosBest(BufferedWriter bw) throws IOException {
+		Collections.sort(anyCombos, new ComboSortComparator());
+		int i = 1;
+		int writeI = 1;
+		Combo lastCombo = null;
+		for (Combo combo: anyCombos) {
+			if (lastCombo != null && lastCombo.getTotalTime() != combo.getTotalTime()) {
+				writeI = i;
+			}
+			lastCombo = combo;
+			combo.writeAny(bw, writeI);
+			i++;
 		}
 	}
 	
@@ -95,10 +123,17 @@ public class RacerBatch {
 			bw.newLine();
 			Collections.sort(anyCombos,new ComboSortComparator());
 			int i = 1;
+			int writeI = 1;
+			Combo lastCombo = null;
 			for (Combo combo: anyCombos) {
-				combo.compactWrite(bw, i++);
+				if (lastCombo != null && lastCombo.getTotalTime() != combo.getTotalTime()) {
+					writeI = i;
+				}
+				lastCombo = combo;
+				combo.compactWrite(bw, writeI);
+				i++;
 			}
-			bw.write("====================");
+			bw.write("=================");
 			bw.newLine();
 		}
 		if (doubleCombos.size() > 0) {
@@ -106,18 +141,32 @@ public class RacerBatch {
 			bw.newLine();
 			Collections.sort(doubleCombos,new ComboSortComparator());
 			int i = 1;
+			int writeI = 1;
+			Combo lastCombo = null;
 			for (Combo combo: doubleCombos) {
-				combo.compactWrite(bw, i++);
+				if (lastCombo != null && lastCombo.getTotalTime() != combo.getTotalTime()) {
+					writeI = i;
+				}
+				lastCombo = combo;
+				combo.compactWrite(bw, writeI);
+				i++;
 			}
-			bw.write("====================");
+			bw.write("=================");
 			bw.newLine();
 		}
 		bw.write("All combos sorted:");
 		bw.newLine();
 		Collections.sort(combos,new ComboSortComparator());
 		int i = 1;
+		int writeI = 1;
+		Combo lastCombo = null;
 		for (Combo combo: combos) {
-			combo.compactWrite(bw, i++);
+			if (lastCombo != null && lastCombo.getTotalTime() != combo.getTotalTime()) {
+				writeI = i;
+			}
+			lastCombo = combo;
+			combo.compactWrite(bw, writeI);
+			i++;
 		}
 	}
 	
@@ -237,15 +286,29 @@ public class RacerBatch {
 		for (ArrayList<RaceTime> hoi: courseTimes) {
 			//System.out.println(hoi.size());
 			int globalPosition = 1;
+			int gpi = 1;
 			int topPosition = 1;
+			int tpi = 1;
+			RaceTime lastGlobal = null;
+			RaceTime lastTop = null;
 			Collections.sort(hoi);
 			
 			int top = hoi.get(0).miliTime();
 			boolean known = true;
 			for (RaceTime racetime : hoi) {
-				racetime.globalPosition = globalPosition++;
+				if (lastGlobal != null && lastGlobal.compareTo(racetime) != 0) {
+					globalPosition = gpi;
+				}
+				lastGlobal = racetime;
+				racetime.globalPosition = globalPosition;
+				gpi++;
 				if (racetime.topTime) {
-					racetime.globalUniquePosition = topPosition++;
+					if (lastTop != null && lastTop.compareTo(racetime) != 0) {
+						topPosition = tpi;
+					}
+					lastTop = racetime;
+					racetime.globalUniquePosition = topPosition;
+					tpi++;
 				}
 				racetime.perfectVision = known;
 				
