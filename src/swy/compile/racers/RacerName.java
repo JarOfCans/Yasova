@@ -199,8 +199,8 @@ public class RacerName implements Comparable<RacerName> {
 	@Override
 	public int compareTo(RacerName o) {
 		//System.out.println(o.averageAllWRPR());
-		int oTime = (int) (o.averageAllWRPR()*10000);
-		int thisTotal = (int) (this.averageAllWRPR()*10000);
+		int oTime = (int) (o.averageAllWRPR()*100000);
+		int thisTotal = (int) (this.averageAllWRPR()*100000);
 		if (thisTotal == 0 && oTime == 0) {
 			return this.name.toLowerCase().compareTo(o.name.toLowerCase());
 		}
@@ -210,6 +210,9 @@ public class RacerName implements Comparable<RacerName> {
 		else if (oTime == 0) {
 			return -1;
 		}
+		/*if (Math.abs(oTime - thisTotal) <= 10) {
+			System.out.println(this.name + " " + thisTotal + " vs " + o.name + " " + oTime);
+		}*/
 		return oTime - thisTotal;
 	}
 
